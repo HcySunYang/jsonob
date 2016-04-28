@@ -6,18 +6,26 @@ export class Jsonob{
             console.error('This parameter must be an object：' + obj);
         }
         this.$callback = callback;
+        this.$cacheData = 
         this.observe(obj);
     }
     
     observe(obj){
         Object.keys(obj).forEach(function(key, index, keyArray){
-            var val = obj[key];
+            var oldVal = obj[key];
             Object.defineProperty(obj, key, {
                 get: function(){
-                    return val;
+                    return oldVal;
                 },
                 set: (function(newVal){
-                    this.$callback(newVal);
+                    if(oldVal !== newVal){
+                        if(OP.toString.call(newVal) === '[object Object]'){
+                            this.observe(newVal);
+                        }
+                        this.$callback(newVal, oldVal);
+                        oldVal = newVal;
+                    }
+                    
                 }).bind(this)
             });
             
