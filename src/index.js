@@ -16,12 +16,24 @@ export class Jsonob{
         this.observe(obj);
     }
     
-    observe(obj){
+    /**
+	 * 监测数据对象
+	 * @param   {Object}  obj    [要监测的数据对象]
+	 * @param   {Array}   path   [属性路径]
+	 */
+    observe(obj, path){
         if(OP.toString.call(obj) === '[object Array]'){
-            this.overrideArrayProto(obj);
+            this.overrideArrayProto(obj, path);
         }
         Object.keys(obj).forEach(function(key, index, keyArray){
             var oldVal = obj[key];
+            var pathArray = path && path.slice(0);
+            if(pathArray){
+                pathArray.push(key);
+            }else{
+                pathArray = [key];
+            }
+            
             Object.defineProperty(obj, key, {
                 get: function(){
                     return oldVal;
@@ -29,9 +41,9 @@ export class Jsonob{
                 set: (function(newVal){
                     if(oldVal !== newVal){
                         if(OP.toString.call(newVal) === '[object Object]' || OP.toString.call(newVal) === '[object Array]'){
-                            this.observe(newVal);
+                            this.observe(newVal, pathArray);
                         }
-                        this.$callback(newVal, oldVal);
+                        this.$callback(newVal, oldVal, pathArray);
                         oldVal = newVal;
                     }
                     
@@ -39,14 +51,19 @@ export class Jsonob{
             });
             
             if(OP.toString.call(obj[key]) === '[object Object]' || OP.toString.call(obj[key]) === '[object Array]'){
-                this.observe(obj[key]);
+                this.observe(obj[key], pathArray);
             }
             
         }, this);
         
     }
     
-    overrideArrayProto(array){
+    /**
+	 * 重写数组的方法
+	 * @param   {Array}   array     [数组字段]
+	 * @param   {Array}   path      [属性路径]
+	 */
+    overrideArrayProto(array, path){
         var originalProto = Array.prototype,
             overrideProto = Object.create(Array.prototype),
             self = this,
@@ -63,8 +80,8 @@ export class Jsonob{
                     var arg = [].slice.apply(arguments);
                     result = originalProto[method].apply(this, arg);
                     
-                    self.observe(this);
-                    self.$callback(this, oldArray);
+                    self.observe(this, path);
+                    self.$callback(this, oldArray, path);
                     
                     return result;
                 },

@@ -8,8 +8,8 @@
         <script>
             var Jsonob = Jsonob.Jsonob;
             
-            var callback = function(newVal, oldVal){
-                alert('新值：' + newVal + '----' + '旧值：' + oldVal);
+            var callback = function(newVal, oldVal, path){
+                alert('新值：' + newVal + '----' + '旧值：' + oldVal + '----路径：' + path);
             };
             
             var data = {
@@ -26,9 +26,9 @@
             var j = new Jsonob(data, callback);
             
             data.level1.c.push(4);
-            data.level1.c.pop();
-            // data.level1.b = 'sss';
-            // data.level1.level2.d = 'msn';
+            data.level1.c[0].w = 100;
+            data.level1.b = 'sss';
+            data.level1.level2.d = 'msn';
         </script>
     </body>
 </html>
